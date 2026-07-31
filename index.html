@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chest X-ray Pneumonia Screening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F8FA;
+    --surface: #FFFFFF;
+    --line: #DCE6E9;
+    --ink: #16262B;
+    --ink-soft: #52686F;
+    --teal: #0E7C86;
+    --teal-deep: #0A5C63;
+    --navy: #223B49;
+    --normal: #1F9D7C;
+    --pneumonia: #D96C4C;
+    --amber: #C99A2E;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(22,38,43,0.04), 0 8px 24px rgba(22,38,43,0.06);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(14,124,134,0.06), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(14,124,134,0.05), transparent 40%);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap{
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header.hero{
+    display:flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal-deep);
+    font-weight: 600;
+  }
+  .eyebrow .dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 4px rgba(14,124,134,0.14);
+  }
+
+  h1{
+    font-family:'Newsreader', serif;
+    font-weight: 500;
+    font-size: clamp(32px, 5vw, 44px);
+    line-height: 1.12;
+    margin: 0;
+    color: var(--navy);
+    max-width: 620px;
+  }
+  h1 em{ font-style: italic; color: var(--teal-deep); }
+
+  .lede{
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 560px;
+    margin: 0;
+  }
+
+  .disclaimer{
+    display:flex;
+    gap: 10px;
+    align-items:flex-start;
+    background: #FBF6E9;
+    border: 1px solid #EADFAF;
+    color: #7A5B12;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 620px;
+  }
+  .disclaimer svg{ flex-shrink:0; margin-top:1px; }
+
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---- Upload dropzone ---- */
+  .dropzone{
+    padding: 40px 32px;
+    text-align:center;
+    cursor:pointer;
+    position: relative;
+    transition: border-color .2s ease, background .2s ease;
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .dropzone.drag{
+    border-color: var(--teal);
+    background: #EFF8F8;
+  }
+  .dropzone input{ display:none; }
+
+  .dz-icon{
+    width: 52px; height:52px;
+    margin: 0 auto 16px;
+    color: var(--teal);
+  }
+
+  .dz-title{
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0 0 4px;
+  }
+  .dz-sub{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .dz-sub .browse{
+    color: var(--teal-deep);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ---- Preview + analyze ---- */
+  .analyze-row{
+    display:flex;
+    gap: 24px;
+    align-items: stretch;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .preview-card{
+    flex: 0 0 200px;
+    padding: 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-card img{
+    width: 100%;
+    border-radius: 8px;
+    display:block;
+    filter: grayscale(1) contrast(1.05);
+  }
+  .scanline{
+    position:absolute;
+    left:12px; right:12px;
+    height:2px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    box-shadow: 0 0 10px 2px rgba(14,124,134,0.6);
+    top: 12px;
+    opacity:0;
+  }
+  .scanning .scanline{
+    animation: sweep 1.4s ease-in-out infinite;
+    opacity: 1;
+  }
+  @keyframes sweep{
+    0%{ top: 12px; }
+    50%{ top: calc(100% - 14px); }
+    100%{ top: 12px; }
+  }
+
+  .status-panel{
+    flex: 1 1 280px;
+    padding: 20px 24px;
+    display:flex;
+    flex-direction: column;
+    justify-content:center;
+    gap: 10px;
+  }
+
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 20px;
+    border-radius: 9px;
+    background: var(--teal);
+    color: #fff;
+    transition: background .15s ease, transform .1s ease;
+    align-self: flex-start;
+  }
+  .btn:hover{ background: var(--teal-deep); }
+  .btn:active{ transform: scale(0.98); }
+  .btn:disabled{ background:#B9C6C9; cursor:not-allowed; }
+  .btn.ghost{
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .btn.ghost:hover{ background: #F0F4F5; color: var(--ink); }
+
+  .status-line{
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* ---- Result ---- */
+  .result{
+    margin-top: 24px;
+    padding: 28px 32px;
+    display:none;
+  }
+  .result.show{ display:block; }
+
+  .result-top{
+    display:flex;
+    align-items:center;
+    gap: 22px;
+    flex-wrap: wrap;
+  }
+
+  .gauge-wrap{ position:relative; width: 128px; height:128px; flex-shrink:0; }
+  .gauge-wrap svg{ transform: rotate(-90deg); }
+  .gauge-bg{ fill:none; stroke:#E7EEEF; stroke-width:10; }
+  .gauge-fg{ fill:none; stroke-width:10; stroke-linecap:round; transition: stroke-dashoffset 0.9s cubic-bezier(.2,.8,.2,1), stroke 0.3s ease; }
+  .gauge-label{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .gauge-pct{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .gauge-cap{
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .result-text{ flex:1; min-width: 220px; }
+  .result-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .result-badge.normal{ background: #E4F5EF; color: var(--normal); }
+  .result-badge.pneumonia{ background: #FBEAE1; color: var(--pneumonia); }
+  .result-badge .dot{ width:6px; height:6px; border-radius:50%; background: currentColor; }
+
+  .result-headline{
+    font-family:'Newsreader', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--navy);
+    margin: 0 0 6px;
+  }
+  .result-sub{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .prob-bar-wrap{
+    margin-top: 22px;
+  }
+  .prob-bar-labels{
+    display:flex; justify-content:space-between;
+    font-size: 11px; font-family:'IBM Plex Mono', monospace;
+    color: var(--ink-soft); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .prob-bar{
+    height: 10px;
+    border-radius: 999px;
+    background: #E4F5EF;
+    overflow:hidden;
+    display:flex;
+  }
+  .prob-bar-fill{
+    height:100%;
+    background: var(--pneumonia);
+    width: 0%;
+    transition: width 0.9s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .error-banner{
+    display:none;
+    background: #FBEAE1;
+    border: 1px solid #F0C7B2;
+    color: #9A4222;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-top: 16px;
+  }
+  .error-banner.show{ display:block; }
+
+  footer{
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 560px){
+    .wrap{ padding: 36px 16px 60px; }
+    .analyze-row{ flex-direction: column; }
+    .preview-card{ flex-basis: auto; }
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .scanning .scanline{ animation: none; opacity: 0; }
+    .gauge-fg, .prob-bar-fill{ transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow"><span class="dot"></span> Automated radiograph screening</div>
+    <h1>A second pair of eyes<br><em>on every chest film.</em></h1>
+    <p class="lede">Upload a chest X-ray and this tool will flag likely signs of pneumonia, alongside its confidence in that read — trained on the public Chest X-Ray Images (Pneumonia) dataset.</p>
+    <div class="disclaimer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>For research and education only. This is not a medical device and does not provide a diagnosis — always consult a qualified clinician.</span>
+    </div>
+  </header>
+
+  <div class="card dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload chest X-ray image">
+    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.bmp">
+    <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M4 6h16v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <p class="dz-title">Drop a chest X-ray here</p>
+    <p class="dz-sub">or <span class="browse">browse your files</span> — JPG or PNG, up to 10 MB</p>
+  </div>
+
+  <div class="analyze-row" id="analyzeRow" style="display:none;">
+    <div class="card preview-card" id="previewCard">
+      <div class="scanline"></div>
+      <img id="previewImg" alt="Uploaded chest X-ray preview">
+    </div>
+    <div class="card status-panel">
+      <p class="status-line" id="statusLine">Image ready. Run the screening when you are.</p>
+      <div style="display:flex; gap:10px;">
+        <button class="btn" id="analyzeBtn">Analyze X-ray</button>
+        <button class="btn ghost" id="resetBtn">Choose another</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="card result" id="resultCard">
+    <div class="result-top">
+      <div class="gauge-wrap">
+        <svg width="128" height="128" viewBox="0 0 128 128">
+          <circle class="gauge-bg" cx="64" cy="64" r="54"></circle>
+          <circle class="gauge-fg" id="gaugeFg" cx="64" cy="64" r="54"
+                  stroke-dasharray="339.3" stroke-dashoffset="339.3"></circle>
+        </svg>
+        <div class="gauge-label">
+          <span class="gauge-pct" id="gaugePct">—</span>
+          <span class="gauge-cap">confident</span>
+        </div>
+      </div>
+      <div class="result-text">
+        <span class="result-badge" id="resultBadge"><span class="dot"></span><span id="resultBadgeText">—</span></span>
+        <p class="result-headline" id="resultHeadline">Awaiting analysis</p>
+        <p class="result-sub" id="resultSub">Upload an X-ray above to see a result here.</p>
+      </div>
+    </div>
+
+    <div class="prob-bar-wrap">
+      <div class="prob-bar-labels">
+        <span>Normal</span>
+        <span>Pneumonia</span>
+      </div>
+      <div class="prob-bar">
+        <div class="prob-bar-fill" id="probFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Model: MobileNetV2 transfer-learning classifier, fine-tuned on chest radiographs. Decision threshold and validation
+    figures are fixed by the training run, not adjustable per-image. Screening output should never replace review by a
+    radiologist or treating physician.
+  </footer>
+</div>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const analyzeRow = document.getElementById('analyzeRow');
+  const previewCard = document.getElementById('previewCard');
+  const previewImg = document.getElementById('previewImg');
+  const statusLine = document.getElementById('statusLine');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const errorBanner = document.getElementById('errorBanner');
+  const resultCard = document.getElementById('resultCard');
+  const gaugeFg = document.getElementById('gaugeFg');
+  const gaugePct = document.getElementById('gaugePct');
+  const resultBadge = document.getElementById('resultBadge');
+  const resultBadgeText = document.getElementById('resultBadgeText');
+  const resultHeadline = document.getElementById('resultHeadline');
+  const resultSub = document.getElementById('resultSub');
+  const probFill = document.getElementById('probFill');
+
+  const GAUGE_CIRCUMFERENCE = 339.3;
+  let currentFile = null;
+
+  function openPicker(){ fileInput.click(); }
+  dropzone.addEventListener('click', openPicker);
+  dropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); } });
+
+  ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+  });
+
+  function handleFile(file){
+    hideError();
+    currentFile = file;
+    const url = URL.createObjectURL(file);
+    previewImg.src = url;
+    analyzeRow.style.display = 'flex';
+    resultCard.classList.remove('show');
+    statusLine.textContent = 'Image ready. Run the screening when you are.';
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = 'Analyze X-ray';
+  }
+
+  resetBtn.addEventListener('click', () => {
+    currentFile = null;
+    fileInput.value = '';
+    analyzeRow.style.display = 'none';
+    resultCard.classList.remove('show');
+    hideError();
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!currentFile) return;
+    hideError();
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analyzing…';
+    statusLine.textContent = 'Reading the image and running the model…';
+    previewCard.classList.add('scanning');
+
+    const formData = new FormData();
+    formData.append('file', currentFile);
+
+    try {
+      const response = await fetch('/predict', { method: 'POST', body: formData });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong while analyzing the image.');
+      }
+
+      renderResult(data);
+      statusLine.textContent = 'Done. Upload another X-ray to run again.';
+    } catch (err) {
+      showError(err.message);
+      statusLine.textContent = 'Analysis failed.';
+    } finally {
+      previewCard.classList.remove('scanning');
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Analyze X-ray';
+    }
+  });
+
+  function renderResult(data){
+    const isPneumonia = data.prediction === 'PNEUMONIA';
+
+    resultBadge.className = 'result-badge ' + (isPneumonia ? 'pneumonia' : 'normal');
+    resultBadgeText.textContent = data.prediction;
+
+    resultHeadline.textContent = isPneumonia
+      ? 'Findings consistent with pneumonia'
+      : 'No signs of pneumonia detected';
+
+    resultSub.textContent = isPneumonia
+      ? `The model flagged patterns typical of pneumonia with ${data.confidence}% confidence. Please confirm with a clinician.`
+      : `The model found the scan consistent with a normal chest X-ray, with ${data.confidence}% confidence.`;
+
+    const offset = GAUGE_CIRCUMFERENCE * (1 - data.confidence / 100);
+    gaugeFg.style.stroke = isPneumonia ? 'var(--pneumonia)' : 'var(--normal)';
+    requestAnimationFrame(() => { gaugeFg.style.strokeDashoffset = offset; });
+    gaugePct.textContent = data.confidence + '%';
+
+    probFill.style.width = data.pneumonia_probability + '%';
+
+    resultCard.classList.add('show');
+  }
+
+  function showError(message){
+    errorBanner.textContent = message;
+    errorBanner.classList.add('show');
+  }
+  function hideError(){
+    errorBanner.classList.remove('show');
+    errorBanner.textContent = '';
+  }
+</script>
+</body>
+</html>
