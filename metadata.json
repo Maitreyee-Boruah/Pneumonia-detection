@@ -1,0 +1,28 @@
+{
+  "class_names": [
+    "NORMAL",
+    "PNEUMONIA"
+  ],
+  "positive_class": "PNEUMONIA",
+  "image_size": [
+    224,
+    224
+  ],
+  "input_pixels": "RGB float32 in range 0-255; do not divide by 255",
+  "threshold": 0.8099999999999999,
+  "validation_balanced_accuracy": 0.9317587321126327,
+  "test_metrics": {
+    "accuracy": 0.7980769230769231,
+    "sensitivity": 0.9487179487179487,
+    "specificity": 0.5470085470085471,
+    "tp": 370,
+    "tn": 128,
+    "fp": 106,
+    "fn": 20
+  },
+  "training_class_counts": {
+    "NORMAL": 1207,
+    "PNEUMONIA": 3487
+  },
+  "seed": 42
+}
